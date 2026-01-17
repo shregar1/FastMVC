@@ -217,8 +217,7 @@ dtos/
 │   ├── __init__.py
 │   ├── cache.py                 # Cache configuration DTO
 │   ├── db.py                    # Database configuration DTO
-│   ├── security.py              # Security configuration DTOs
-│   └── usda.py                  # USDA API configuration DTO
+│   └── security.py              # Security configuration DTOs
 ├── requests/
 │   ├── __init__.py
 │   ├── abstraction.py           # IRequestDTO base class

@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="calcount-backend",
+    name="fastmvc",
     version="0.1",
     packages=find_packages(),
 )
