@@ -1,5 +1,5 @@
 from datetime import datetime
-from ulid import ulid
+import ulid
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -14,7 +14,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
         start_time: datetime = datetime.now()
         logger.debug("Generating request urn", urn=None)
-        request_urn: str = ulid()
+        request_urn: str = str(ulid.new())
         request.state.urn = request_urn
         request.state.request_timestamp = start_time
         logger.debug("Generated request urn", urn=request_urn)

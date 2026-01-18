@@ -228,6 +228,7 @@ unprotected_routes: set = {
     "/user/register",
     "/docs",
     "/redoc",
+    "/openapi.json",
 }
 """
 Set of routes that bypass authentication middleware.

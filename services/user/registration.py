@@ -100,7 +100,7 @@ class UserRegistrationService(IUserService):
 
         self.logger.debug("Preparing user data")
         user: User = User(
-            urn=ulid.ulid(),
+            urn=str(ulid.new()),
             email=request_dto.email,
             password=bcrypt.hashpw(
                 request_dto.password.encode("utf-8"),
