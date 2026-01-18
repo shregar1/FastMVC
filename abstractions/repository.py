@@ -27,35 +27,7 @@ from loguru import logger
 from sqlalchemy import and_, or_
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-
-class FilterOperator:
-    """
-    Enumeration of filter operators for flexible querying.
-
-    Provides constants for common SQL comparison operators
-    that can be used with retrieve_record_by_filter.
-
-    Example:
-        >>> filters = [
-        ...     ("age", FilterOperator.GTE, 18),
-        ...     ("status", FilterOperator.IN, ["active", "pending"]),
-        ... ]
-    """
-    EQ = "eq"           # Equal (default)
-    NE = "ne"           # Not equal
-    LT = "lt"           # Less than
-    LE = "le"           # Less than or equal
-    GT = "gt"           # Greater than
-    GE = "ge"           # Greater than or equal
-    GTE = "ge"          # Alias for GE
-    LTE = "le"          # Alias for LE
-    IN = "in"           # In list
-    NOT_IN = "not_in"   # Not in list
-    LIKE = "like"       # SQL LIKE (use % for wildcards)
-    ILIKE = "ilike"     # Case-insensitive LIKE
-    IS_NULL = "is_null" # IS NULL
-    IS_NOT_NULL = "is_not_null"  # IS NOT NULL
-    BETWEEN = "between" # Between two values
+from constants.filter_operator import FilterOperator
 
 
 class IRepository(ABC):
