@@ -41,28 +41,52 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ## Development Setup
 
-1. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate     # Windows
-   ```
+### Using uv (Recommended)
 
-2. Install development dependencies:
-   ```bash
-   pip install -e ".[dev]"
-   ```
+[uv](https://docs.astral.sh/uv/) is a fast Python package manager. Install it first:
 
-3. Start infrastructure services:
-   ```bash
-   docker-compose up -d postgres redis
-   ```
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-4. Verify installation:
-   ```bash
-   fastmvc version
-   pytest tests/ -v
-   ```
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then set up the project:
+
+```bash
+# Install dependencies and create virtual environment
+uv sync --all-extras
+
+# Start infrastructure
+docker-compose up -d postgres redis
+
+# Run tests
+uv run pytest tests/ -v
+
+# Run the CLI
+uv run fastmvc version
+```
+
+### Using pip (Alternative)
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -e ".[dev]"
+
+# Start infrastructure
+docker-compose up -d postgres redis
+
+# Verify installation
+fastmvc version
+pytest tests/ -v
+```
 
 ## Making Changes
 

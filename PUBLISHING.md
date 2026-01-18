@@ -12,9 +12,18 @@ This guide covers publishing FastMVC to the Python Package Index (PyPI).
    - PyPI: Account Settings → API tokens → Add API token
    - TestPyPI: Same process on test.pypi.org
 
-3. **Install build tools**:
+3. **Install uv (Recommended)**:
    ```bash
-   pip install build twine
+   # macOS/Linux
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+
+   # Windows
+   powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+   Or using pip:
+   ```bash
+   pip install uv
    ```
 
 ## Configuration
@@ -53,7 +62,7 @@ export TWINE_PASSWORD=pypi-YOUR_TOKEN_HERE
 ### Option 3: Using keyring (Most Secure)
 
 ```bash
-pip install keyring
+uv pip install keyring
 keyring set https://upload.pypi.org/legacy/ __token__
 # Enter your token when prompted
 ```
@@ -69,16 +78,23 @@ rm -rf build/ dist/ *.egg-info/
 ### 2. Run Tests
 
 ```bash
+# Using uv (recommended)
+uv run pytest tests/ -v --cov
+
+# Using pip
 pytest tests/ -v --cov
 ```
 
 ### 3. Check Code Quality
 
 ```bash
-black --check .
-isort --check .
+# Using uv
+uv run ruff check .
+uv run ruff format --check .
+
+# Or with tools installed globally
 ruff check .
-mypy .
+ruff format --check .
 ```
 
 ### 4. Update Version
@@ -88,12 +104,12 @@ Update version in `pyproject.toml` and `fastmvc_cli/__init__.py`:
 ```toml
 # pyproject.toml
 [project]
-version = "1.0.1"  # Increment appropriately
+version = "1.2.1"  # Increment appropriately
 ```
 
 ```python
 # fastmvc_cli/__init__.py
-__version__ = "1.0.1"
+__version__ = "1.2.1"
 ```
 
 ### 5. Update CHANGELOG
@@ -103,16 +119,21 @@ Add release notes to `CHANGELOG.md`.
 ### 6. Build Package
 
 ```bash
+# Using uv (recommended - much faster!)
+uv build
+
+# Using pip
 python -m build
 ```
 
 This creates:
-- `dist/fastmvc-1.0.0.tar.gz` (source distribution)
-- `dist/fastmvc-1.0.0-py3-none-any.whl` (wheel)
+- `dist/pyfastmvc-x.x.x.tar.gz` (source distribution)
+- `dist/pyfastmvc-x.x.x-py3-none-any.whl` (wheel)
 
 ### 7. Verify Build
 
 ```bash
+uv pip install twine
 twine check dist/*
 ```
 
@@ -124,8 +145,11 @@ twine check dist/*
 # Upload to TestPyPI
 twine upload --repository testpypi dist/*
 
-# Test installation
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ fastmvc
+# Test installation with uv
+uv pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pyfastmvc
+
+# Or with pip
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ pyfastmvc
 ```
 
 ### Publish to PyPI
@@ -135,13 +159,13 @@ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://
 twine upload dist/*
 
 # Verify installation
-pip install pyfastmvc
+uv pip install pyfastmvc
 fastmvc version
 ```
 
 ## GitHub Actions (CI/CD)
 
-Add `.github/workflows/publish.yml`:
+The repository includes `.github/workflows/publish.yml` which uses uv:
 
 ```yaml
 name: Publish to PyPI
@@ -153,30 +177,29 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-      
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.11
+
       - name: Build package
-        run: python -m build
-      
+        run: uv build
+
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
 ```
 
-Add `PYPI_API_TOKEN` to repository secrets.
+Configure Trusted Publishing at: https://pypi.org/manage/project/pyfastmvc/settings/publishing/
 
 ## Versioning
 
@@ -199,8 +222,8 @@ We follow [Semantic Versioning](https://semver.org/):
 
 1. **Create Git Tag**:
    ```bash
-   git tag -a v1.0.0 -m "Release version 1.0.0"
-   git push origin v1.0.0
+   git tag -a v1.2.0 -m "Release version 1.2.0"
+   git push origin v1.2.0
    ```
 
 2. **Create GitHub Release**:
@@ -228,7 +251,7 @@ Check classifiers against the [official list](https://pypi.org/classifiers/).
 
 ```bash
 # Check README rendering
-pip install readme-renderer
+uv pip install readme-renderer
 python -m readme_renderer README.md
 ```
 
@@ -239,14 +262,13 @@ Check `MANIFEST.in` and `pyproject.toml` package-data settings.
 ## Quick Reference
 
 ```bash
-# Full release process
+# Full release process with uv
 rm -rf build/ dist/ *.egg-info/
-pytest tests/ -v
-python -m build
+uv run pytest tests/ -v
+uv build
 twine check dist/*
 twine upload --repository testpypi dist/*  # Test first
 twine upload dist/*                         # Production
-git tag -a v1.0.0 -m "Release v1.0.0"
-git push origin v1.0.0
+git tag -a v1.2.0 -m "Release v1.2.0"
+git push origin v1.2.0
 ```
-

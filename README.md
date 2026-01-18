@@ -37,6 +37,20 @@
 
 ## 📦 Installation
 
+### Using uv (Recommended)
+
+[uv](https://docs.astral.sh/uv/) is a blazing fast Python package manager:
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install FastMVC
+uv pip install pyfastmvc
+```
+
+### Using pip
+
 ```bash
 pip install pyfastmvc
 ```
@@ -45,7 +59,7 @@ Verify installation:
 
 ```bash
 fastmvc --version
-# → fastmvc, version 1.0.1
+# → fastmvc, version 1.2.0
 ```
 
 ---
@@ -62,6 +76,13 @@ fastmvc generate my_api
 
 ```bash
 cd my_api
+
+# Using uv (recommended)
+uv sync
+uv run fastmvc migrate upgrade
+uv run uvicorn app:app --reload
+
+# Or using pip
 pip install -r requirements.txt
 cp .env.example .env
 docker-compose up -d          # Start PostgreSQL + Redis
@@ -731,16 +752,15 @@ We love contributions! Here's how to get started:
 ```bash
 # Clone the repo
 git clone https://github.com/shregar1/fastMVC.git
-cd pyfastmvc
+cd fastMVC
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
+# Using uv (recommended)
+uv sync --all-extras
+uv run pytest
 
-# Install dev dependencies
+# Or using pip
+python -m venv venv && source venv/bin/activate
 pip install -e ".[dev]"
-
-# Run tests
 pytest
 
 # Make your changes and submit a PR!

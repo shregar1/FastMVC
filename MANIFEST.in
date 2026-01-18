@@ -6,6 +6,7 @@ include LICENSE
 include CHANGELOG.md
 include pyproject.toml
 include requirements.txt
+include uv.lock
 include pytest.ini
 include alembic.ini
 include .coveragerc
