@@ -51,6 +51,7 @@ class ProjectGenerator:
         "dtos",
         "errors",
         "middlewares",
+        "migrations",
         "models",
         "repositories",
         "services",
@@ -68,6 +69,7 @@ class ProjectGenerator:
         "pytest.ini",
         ".coveragerc",
         "LICENSE",
+        "alembic.ini",
     ]
     
     # Directories/files to exclude when copying

@@ -171,12 +171,66 @@ The `validate_password_strength` method enforces:
 | No repeats | No 3+ consecutive identical characters |
 | Not common | Not in weak password list |
 
+### CacheUtility (`cache.py`)
+
+Redis-based caching with decorators for function result caching.
+
+```python
+from utilities.cache import CacheUtility, create_cache
+from start_utils import redis_session
+
+# Create cache instance
+cache = create_cache(redis_session, default_ttl=3600)
+
+# Cache function results with decorator
+@cache.cached(ttl=300, prefix="user")
+async def get_user(user_id: int):
+    return await db.fetch_user(user_id)
+
+# With custom key function
+@cache.cached(key_func=lambda uid: f"profile:{uid}")
+async def get_profile(user_id: int):
+    return await db.fetch_profile(user_id)
+
+# Invalidate cache after modifications
+@cache.invalidate("user:*")
+async def update_user(user_id: int, data: dict):
+    return await db.update_user(user_id, data)
+
+# Manual cache operations
+cache.set("my_key", {"data": "value"}, ttl=300)
+data = cache.get("my_key")
+cache.delete("my_key")
+cache.delete_pattern("user:*")
+cache.clear()  # Clear all cached values with prefix
+```
+
+**Methods:**
+
+| Method | Description |
+|--------|-------------|
+| `get(key)` | Retrieve value from cache |
+| `set(key, value, ttl)` | Store value with optional TTL |
+| `delete(key)` | Remove single key |
+| `delete_pattern(pattern)` | Remove keys matching pattern |
+| `clear()` | Clear all cached values |
+| `cached(ttl, prefix, key_func)` | Decorator for caching results |
+| `invalidate(prefix)` | Decorator for cache invalidation |
+
+**Features:**
+- Automatic key generation from function arguments
+- Support for both sync and async functions
+- Pattern-based cache invalidation
+- Pickle serialization for complex objects
+- Graceful degradation when Redis is unavailable
+
 ## File Structure
 
 ```
 utilities/
 ├── __init__.py
 ├── README.md
+├── cache.py           # Redis caching with decorators
 ├── dictionary.py      # Dictionary manipulation
 ├── jwt.py             # JWT token operations
 └── validation.py      # Input validation and security
