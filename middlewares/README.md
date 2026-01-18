@@ -9,7 +9,7 @@ This directory also contains app-specific middlewares (like custom JWT authentic
 ## 🚀 Quick Start
 
 ```python
-from FastMiddleware import (
+from fastmiddleware import (
     SecurityHeadersMiddleware,
     RateLimitMiddleware,
     RequestContextMiddleware,
@@ -67,7 +67,7 @@ app.add_middleware(RequestContextMiddleware)
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 📦 FastMiddleware Package Components
+## 📦 fastmiddleware Package Components
 
 ### Categories Available (90+ Middlewares)
 
@@ -87,7 +87,7 @@ app.add_middleware(RequestContextMiddleware)
 ### Usage Example
 
 ```python
-from FastMiddleware import (
+from fastmiddleware import (
     # Security
     SecurityHeadersMiddleware,
     SecurityHeadersConfig,
@@ -162,7 +162,7 @@ app.add_middleware(AuthenticationMiddleware)
 
 ### RequestContextMiddleware (`request_context.py`)
 
-Local implementation for request tracking (can use FastMiddleware version instead).
+Local implementation for request tracking (can use fastmiddleware version instead).
 
 ```python
 from middlewares.request_context import RequestContextMiddleware
@@ -178,7 +178,7 @@ app.add_middleware(RequestContextMiddleware)
 
 ### RateLimitMiddleware (`rate_limit.py`)
 
-Local rate limiting implementation (can use FastMiddleware version instead).
+Local rate limiting implementation (can use fastmiddleware version instead).
 
 ```python
 from middlewares.rate_limit import RateLimitMiddleware, RateLimitConfig
@@ -194,7 +194,7 @@ app.add_middleware(RateLimitMiddleware, config=config)
 
 ### SecurityHeadersMiddleware (`security_headers.py`)
 
-Local security headers implementation (can use FastMiddleware version instead).
+Local security headers implementation (can use fastmiddleware version instead).
 
 ```python
 from middlewares.security_headers import SecurityHeadersMiddleware
@@ -208,10 +208,10 @@ app.add_middleware(
 
 ## 🔧 Configuration
 
-### SecurityHeadersConfig (FastMiddleware)
+### SecurityHeadersConfig (fastmiddleware)
 
 ```python
-from FastMiddleware import SecurityHeadersConfig
+from fastmiddleware import SecurityHeadersConfig
 
 config = SecurityHeadersConfig(
     x_content_type_options="nosniff",
@@ -228,10 +228,10 @@ config = SecurityHeadersConfig(
 )
 ```
 
-### RateLimitConfig (FastMiddleware)
+### RateLimitConfig (fastmiddleware)
 
 ```python
-from FastMiddleware import RateLimitConfig
+from fastmiddleware import RateLimitConfig
 
 config = RateLimitConfig(
     requests_per_minute=60,
@@ -271,12 +271,12 @@ middlewares/
 ├── request_context.py     # Local request context
 └── security_headers.py    # Local security headers
 
-# FastMiddleware package provides 90+ additional middlewares
-# via: from FastMiddleware import ...
+# fastmiddleware package provides 90+ additional middlewares
+# via: from fastmiddleware import ...
 ```
 
 ## 🔗 Resources
 
 - [fastmvc-middleware on PyPI](https://pypi.org/project/fastmvc-middleware/)
-- [FastMiddleware Documentation](https://github.com/shregar1/fastmvc-middleware)
+- [fastmiddleware Documentation](https://github.com/shregar1/fastmvc-middleware)
 - [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/)

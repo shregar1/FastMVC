@@ -556,7 +556,7 @@ python -m uvicorn app:app --reload
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  🛡️ MIDDLEWARE STACK (FastMiddleware - 90+ components)         │
+│  🛡️ MIDDLEWARE STACK (fastmiddleware - 90+ components)         │
 │  RequestContext → Timing → RateLimit → Auth → Security         │
 └─────────────────────────────────────────────────────────────────┘
                                │
@@ -629,7 +629,7 @@ fastmvc migrate status                         # Show status
 This project uses [**fastmvc-middleware**](https://pypi.org/project/fastmvc-middleware/) with 90+ production-ready components:
 
 ```python
-from FastMiddleware import (
+from fastmiddleware import (
     SecurityHeadersMiddleware,    # CSP, HSTS, X-Frame-Options
     RateLimitMiddleware,          # Sliding window rate limiting
     RequestContextMiddleware,     # Request tracking & URN

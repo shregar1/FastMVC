@@ -1,7 +1,7 @@
 """
 Tests for middleware classes.
 
-Tests both local middlewares and FastMiddleware package components.
+Tests both local middlewares and fastmiddleware package components.
 """
 
 from unittest.mock import MagicMock, patch
@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Test FastMiddleware package components
-from FastMiddleware import (
+from fastmiddleware import (
     CORSMiddleware,
     LoggingMiddleware,
     RateLimitConfig,
@@ -264,14 +264,14 @@ class TestLocalRequestContextMiddleware:
 
 
 # =============================================================================
-# FastMiddleware Package Tests
+# fastmiddleware Package Tests
 # =============================================================================
 
-class TestFastMiddlewareSecurityHeaders:
-    """Tests for FastMiddleware SecurityHeadersMiddleware."""
+class TestfastmiddlewareSecurityHeaders:
+    """Tests for fastmiddleware SecurityHeadersMiddleware."""
 
     def test_config_initialization(self):
-        """Test SecurityHeadersConfig from FastMiddleware."""
+        """Test SecurityHeadersConfig from fastmiddleware."""
         config = SecurityHeadersConfig(
             enable_hsts=True,
             hsts_max_age=31536000,
@@ -289,11 +289,11 @@ class TestFastMiddlewareSecurityHeaders:
         assert middleware is not None
 
 
-class TestFastMiddlewareRateLimit:
-    """Tests for FastMiddleware RateLimitMiddleware."""
+class TestfastmiddlewareRateLimit:
+    """Tests for fastmiddleware RateLimitMiddleware."""
 
     def test_config_initialization(self):
-        """Test RateLimitConfig from FastMiddleware."""
+        """Test RateLimitConfig from fastmiddleware."""
         config = RateLimitConfig(
             requests_per_minute=60,
             requests_per_hour=1000,
@@ -314,8 +314,8 @@ class TestFastMiddlewareRateLimit:
         assert middleware is not None
 
 
-class TestFastMiddlewareRequestContext:
-    """Tests for FastMiddleware RequestContextMiddleware."""
+class TestfastmiddlewareRequestContext:
+    """Tests for fastmiddleware RequestContextMiddleware."""
 
     def test_middleware_creation(self):
         """Test RequestContextMiddleware can be created."""
@@ -324,8 +324,8 @@ class TestFastMiddlewareRequestContext:
         assert middleware is not None
 
 
-class TestFastMiddlewareTiming:
-    """Tests for FastMiddleware TimingMiddleware."""
+class TestfastmiddlewareTiming:
+    """Tests for fastmiddleware TimingMiddleware."""
 
     def test_middleware_creation(self):
         """Test TimingMiddleware can be created."""
@@ -340,8 +340,8 @@ class TestFastMiddlewareTiming:
         assert middleware is not None
 
 
-class TestFastMiddlewareLogging:
-    """Tests for FastMiddleware LoggingMiddleware."""
+class TestfastmiddlewareLogging:
+    """Tests for fastmiddleware LoggingMiddleware."""
 
     def test_middleware_creation(self):
         """Test LoggingMiddleware can be created."""
@@ -359,8 +359,8 @@ class TestFastMiddlewareLogging:
         assert middleware is not None
 
 
-class TestFastMiddlewareCORS:
-    """Tests for FastMiddleware CORSMiddleware."""
+class TestfastmiddlewareCORS:
+    """Tests for fastmiddleware CORSMiddleware."""
 
     def test_middleware_creation(self):
         """Test CORSMiddleware can be created."""
@@ -373,8 +373,8 @@ class TestFastMiddlewareCORS:
         assert middleware is not None
 
 
-class TestFastMiddlewareTrustedHost:
-    """Tests for FastMiddleware TrustedHostMiddleware."""
+class TestfastmiddlewareTrustedHost:
+    """Tests for fastmiddleware TrustedHostMiddleware."""
 
     def test_middleware_creation(self):
         """Test TrustedHostMiddleware can be created."""

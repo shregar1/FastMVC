@@ -84,7 +84,7 @@ dependencies = [
     "httpx>=0.24.0,<1.0.0",
     "cachetools>=5.0.0,<6.0.0",
     "mako>=1.2.0,<2.0.0",
-    "fastmvc-middleware>=0.5.0",
+    "fastmvc-middleware>=0.6.2",
 ]
 
 [project.optional-dependencies]

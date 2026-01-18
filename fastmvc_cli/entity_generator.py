@@ -789,7 +789,7 @@ from utilities.dictionary import DictionaryUtility
 from loguru import logger
 
 try:
-    from FastMiddleware.request_context import get_request_id
+    from fastmiddleware.request_context import get_request_id
 except ImportError:
     def get_request_id():
         return None

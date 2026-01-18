@@ -22,32 +22,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Middleware stack documentation
   - Security features table
 - **Improved CLI Output** - Better formatted help messages with emojis and visual separators
-- **FastMiddleware Support in Generated Entities** - Controllers now use `get_request_id()` from FastMiddleware with fallback
+- **fastmiddleware Support in Generated Entities** - Controllers now use `get_request_id()` from fastmiddleware with fallback
 
 ### Changed
 - Updated `fastmvc info` command with visual formatting and middleware documentation
-- Generated controllers now import and use `FastMiddleware.request_context.get_request_id()` for request tracking
-- Improved entity generator templates with better FastMiddleware integration
+- Generated controllers now import and use `fastmiddleware.request_context.get_request_id()` for request tracking
+- Improved entity generator templates with better fastmiddleware integration
 
 ### Fixed
-- Request URN handling in generated controllers now supports both FastMiddleware and legacy request.state.urn
+- Request URN handling in generated controllers now supports both fastmiddleware and legacy request.state.urn
 
 ## [1.1.0] - 2026-01-18
 
 ### Added
-- **FastMiddleware Integration** - Integrated [fastmvc-middleware](https://pypi.org/project/fastmvc-middleware/) package with 90+ production-ready middleware components
+- **fastmiddleware Integration** - Integrated [fastmvc-middleware](https://pypi.org/project/fastmvc-middleware/) package with 90+ production-ready middleware components
   - SecurityHeadersMiddleware with enhanced configuration
   - RateLimitMiddleware with sliding window algorithm
   - RequestContextMiddleware for request tracking
   - TimingMiddleware for response time headers
   - LoggingMiddleware for structured request/response logging
   - CORSMiddleware and TrustedHostMiddleware
-- Compatibility layer in AuthenticationMiddleware to work with FastMiddleware's RequestContextMiddleware
+- Compatibility layer in AuthenticationMiddleware to work with fastmiddleware's RequestContextMiddleware
 - Enhanced README with middleware documentation and visual diagrams
 
 ### Changed
-- Updated middleware stack to use FastMiddleware package components
-- Improved request URN handling to support both local and FastMiddleware request IDs
+- Updated middleware stack to use fastmiddleware package components
+- Improved request URN handling to support both local and fastmiddleware request IDs
 
 ### Dependencies
 - Added `fastmvc-middleware>=0.5.0` as core dependency
@@ -115,8 +115,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 1.2.0 | 2026-01-18 | Enhanced CLI, improved generators, better FastMiddleware integration |
-| 1.1.0 | 2026-01-18 | FastMiddleware integration with 90+ middleware components |
+| 1.2.0 | 2026-01-18 | Enhanced CLI, improved generators, better fastmiddleware integration |
+| 1.1.0 | 2026-01-18 | fastmiddleware integration with 90+ middleware components |
 | 1.0.0 | 2026-01-18 | Major release with CLI, entity generator, migrations |
 | 0.1.0 | 2025-01-01 | Initial release |
 

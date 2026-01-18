@@ -558,14 +558,14 @@ wheels = [
 
 [[package]]
 name = "fastmvc-middleware"
-version = "0.6.0"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "starlette" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/61/09/920f82049cdc9fa98390282f5c858418d3b09baf9f114f8e34dcc46999ed/fastmvc_middleware-0.6.0.tar.gz", hash = "sha256:6c3269246977fc406d5ba12ba4dcbd1405173f9e99d2295405316368663bcb57", size = 124007, upload-time = "2026-01-18T12:51:36.835Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c8/5b/3a725a022354585d33517d20a61a8ff6dc98ee58f0049f5f43554082437a/fastmvc_middleware-0.6.2.tar.gz", hash = "sha256:d863906b9c8acd70a42e889cdbe8bc8d9f03f7bce4c9031d152f8dffdb683f1b", size = 136813, upload-time = "2026-01-18T15:59:26.308Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/5c/eddbd16076c1cab53114f650ceb79aee74eaff378fc8261a0bedad8a5e94/fastmvc_middleware-0.6.0-py3-none-any.whl", hash = "sha256:525ed87843ccff488956f387458ec689d06321ec92a990e2b88ffbe024d9777f", size = 183267, upload-time = "2026-01-18T12:51:34.881Z" },
+    { url = "https://files.pythonhosted.org/packages/63/ef/31a352ffc4e670cc59869ed48f4db5d6a8c6d62061b250563334664c014c/fastmvc_middleware-0.6.2-py3-none-any.whl", hash = "sha256:7c57a484dca395b249a9cc4b4a270688ec416f36e4238332d8bd4ce2087ee8e6", size = 190866, upload-time = "2026-01-18T15:59:22.404Z" },
 ]
 
 [[package]]
@@ -1440,7 +1440,7 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.0.0,<8.0.0" },
     { name = "email-validator", specifier = ">=2.0.0,<3.0.0" },
     { name = "fastapi", specifier = ">=0.100.0,<1.0.0" },
-    { name = "fastmvc-middleware", specifier = ">=0.5.0" },
+    { name = "fastmvc-middleware", specifier = ">=0.6.2" },
     { name = "httpx", specifier = ">=0.24.0,<1.0.0" },
     { name = "loguru", specifier = ">=0.7.0,<1.0.0" },
     { name = "mako", specifier = ">=1.2.0,<2.0.0" },

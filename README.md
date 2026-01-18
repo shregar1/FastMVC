@@ -623,7 +623,7 @@ All responses follow a consistent structure:
 FastMVC uses [**fastmvc-middleware**](https://pypi.org/project/fastmvc-middleware/) - a collection of **90+ production-ready middlewares** for FastAPI:
 
 ```python
-from FastMiddleware import (
+from fastmiddleware import (
     SecurityHeadersMiddleware,    # CSP, HSTS, X-Frame-Options
     RateLimitMiddleware,          # Sliding window rate limiting
     RequestContextMiddleware,     # Request tracking & URN generation

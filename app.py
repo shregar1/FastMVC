@@ -35,7 +35,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 # Import middlewares from fastmvc-middleware package
-from FastMiddleware import (
+from fastmiddleware import (
     CORSMiddleware,
     LoggingMiddleware,
     RateLimitConfig,
@@ -159,7 +159,7 @@ async def health_check():
 # MIDDLEWARE CONFIGURATION (using fastmvc-middleware package)
 # =============================================================================
 
-logger.info("Initializing middleware stack with FastMiddleware")
+logger.info("Initializing middleware stack with fastmiddleware")
 
 # Trusted Host Middleware - Prevents host header attacks
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
@@ -219,7 +219,7 @@ app.add_middleware(AuthenticationMiddleware)
 # Request Context Middleware - URN generation and request tracking (must be first)
 app.add_middleware(RequestContextMiddleware)
 
-logger.info("Initialized middleware stack with FastMiddleware")
+logger.info("Initialized middleware stack with fastmiddleware")
 
 # =============================================================================
 # ROUTER CONFIGURATION
