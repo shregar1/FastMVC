@@ -12,17 +12,51 @@ Example:
     ...         self.session = session
     ...
     ...     def find_by_email(self, email: str) -> UserModel:
-    ...         return self.session.query(self.model).filter_by(email=email).first()
+    ...         return self.retrieve_record_by_filter(
+    ...             filters={"email": email}
+    ...         )
 """
 
 from abc import ABC
 from datetime import datetime
 from operator import attrgetter
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Callable, Type, Union
 
 from cachetools import cachedmethod, LRUCache
 from loguru import logger
+from sqlalchemy import and_, or_
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.orm import Query
+
+
+class FilterOperator:
+    """
+    Enumeration of filter operators for flexible querying.
+    
+    Provides constants for common SQL comparison operators
+    that can be used with retrieve_record_by_filter.
+    
+    Example:
+        >>> filters = [
+        ...     ("age", FilterOperator.GTE, 18),
+        ...     ("status", FilterOperator.IN, ["active", "pending"]),
+        ... ]
+    """
+    EQ = "eq"           # Equal (default)
+    NE = "ne"           # Not equal
+    LT = "lt"           # Less than
+    LE = "le"           # Less than or equal
+    GT = "gt"           # Greater than
+    GE = "ge"           # Greater than or equal
+    GTE = "ge"          # Alias for GE
+    LTE = "le"          # Alias for LE
+    IN = "in"           # In list
+    NOT_IN = "not_in"   # Not in list
+    LIKE = "like"       # SQL LIKE (use % for wildcards)
+    ILIKE = "ilike"     # Case-insensitive LIKE
+    IS_NULL = "is_null" # IS NULL
+    IS_NOT_NULL = "is_not_null"  # IS NOT NULL
+    BETWEEN = "between" # Between two values
 
 
 class IRepository(ABC):
@@ -32,6 +66,7 @@ class IRepository(ABC):
     The IRepository class provides a standardized interface for data access
     operations in the FastMVC framework. It includes built-in support for:
         - CRUD operations (Create, Read, Update, Delete)
+        - Flexible filtering with multiple operators
         - Query result caching with LRU cache
         - Execution time logging for performance monitoring
         - Soft delete support via is_deleted flag
@@ -58,10 +93,11 @@ class IRepository(ABC):
         ...         )
         ...         self.session = session
         ...
-        ...     def find_by_category(self, category: str):
-        ...         return self.session.query(self.model).filter_by(
-        ...             category=category
-        ...         ).all()
+        ...     def find_active_by_category(self, category: str):
+        ...         return self.retrieve_records_by_filter(
+        ...             filters={"category": category, "is_active": True},
+        ...             order_by="name"
+        ...         )
     """
 
     def __init__(
@@ -167,6 +203,367 @@ class IRepository(ABC):
         """Set the cache instance."""
         self._cache = value
 
+    def _build_filter_condition(
+        self,
+        field: str,
+        operator: str,
+        value: Any,
+    ):
+        """
+        Build a SQLAlchemy filter condition from field, operator, and value.
+        
+        Args:
+            field: Model attribute name.
+            operator: Filter operator (from FilterOperator).
+            value: Value to filter by.
+            
+        Returns:
+            SQLAlchemy filter condition.
+            
+        Raises:
+            AttributeError: If field doesn't exist on model.
+            ValueError: If operator is not supported.
+        """
+        column = getattr(self.model, field)
+        
+        operator_map = {
+            FilterOperator.EQ: lambda c, v: c == v,
+            FilterOperator.NE: lambda c, v: c != v,
+            FilterOperator.LT: lambda c, v: c < v,
+            FilterOperator.LE: lambda c, v: c <= v,
+            FilterOperator.GT: lambda c, v: c > v,
+            FilterOperator.GE: lambda c, v: c >= v,
+            FilterOperator.IN: lambda c, v: c.in_(v),
+            FilterOperator.NOT_IN: lambda c, v: ~c.in_(v),
+            FilterOperator.LIKE: lambda c, v: c.like(v),
+            FilterOperator.ILIKE: lambda c, v: c.ilike(v),
+            FilterOperator.IS_NULL: lambda c, v: c.is_(None),
+            FilterOperator.IS_NOT_NULL: lambda c, v: c.isnot(None),
+            FilterOperator.BETWEEN: lambda c, v: c.between(v[0], v[1]),
+        }
+        
+        if operator not in operator_map:
+            raise ValueError(f"Unsupported operator: {operator}")
+        
+        return operator_map[operator](column, value)
+
+    def _build_query_filters(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]],
+        use_or: bool = False,
+    ) -> list:
+        """
+        Build a list of SQLAlchemy filter conditions from filters specification.
+        
+        Supports two filter formats:
+        1. Simple dict: {"field": value} - uses equality operator
+        2. List of tuples: [("field", "operator", value)] - custom operators
+        
+        Args:
+            filters: Filter specification (dict or list of tuples).
+            use_or: If True, combine filters with OR instead of AND.
+            
+        Returns:
+            List of SQLAlchemy filter conditions.
+            
+        Example:
+            >>> # Simple equality filters
+            >>> filters = {"status": "active", "is_deleted": False}
+            >>>
+            >>> # Advanced filters with operators
+            >>> filters = [
+            ...     ("age", FilterOperator.GTE, 18),
+            ...     ("status", FilterOperator.IN, ["active", "pending"]),
+            ...     ("name", FilterOperator.LIKE, "%john%"),
+            ... ]
+        """
+        conditions = []
+        
+        if isinstance(filters, dict):
+            # Simple dict format: {"field": value} uses equality
+            for field, value in filters.items():
+                conditions.append(
+                    self._build_filter_condition(field, FilterOperator.EQ, value)
+                )
+        elif isinstance(filters, list):
+            # List of tuples format: [("field", "operator", value)]
+            for filter_spec in filters:
+                if len(filter_spec) == 2:
+                    # ("field", value) - use equality
+                    field, value = filter_spec
+                    operator = FilterOperator.EQ
+                elif len(filter_spec) == 3:
+                    # ("field", "operator", value)
+                    field, operator, value = filter_spec
+                else:
+                    raise ValueError(f"Invalid filter specification: {filter_spec}")
+                
+                conditions.append(
+                    self._build_filter_condition(field, operator, value)
+                )
+        
+        return conditions
+
+    def retrieve_record_by_filter(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]] = None,
+        use_or: bool = False,
+        order_by: Union[str, List[str]] = None,
+        order_desc: bool = False,
+        include_deleted: bool = False,
+    ) -> Optional[DeclarativeMeta]:
+        """
+        Retrieve a single record matching the filter criteria.
+        
+        This is the core flexible filtering method that can be used
+        to build any kind of query. It supports simple equality filters
+        via dict, or complex filters with operators via list of tuples.
+        
+        Args:
+            filters: Filter criteria. Can be:
+                - Dict[str, Any]: Simple equality filters {"field": value}
+                - List[tuple]: Advanced filters [("field", "operator", value)]
+            use_or: If True, combine filters with OR. Default is AND.
+            order_by: Field(s) to order by before selecting first.
+            order_desc: If True, order descending. Default ascending.
+            include_deleted: If True, include soft-deleted records.
+            
+        Returns:
+            The first matching record, or None if not found.
+            
+        Example:
+            >>> # Simple filter
+            >>> user = repo.retrieve_record_by_filter({"email": "user@example.com"})
+            >>>
+            >>> # Multiple conditions (AND)
+            >>> product = repo.retrieve_record_by_filter({
+            ...     "category": "electronics",
+            ...     "is_active": True
+            ... })
+            >>>
+            >>> # Advanced filter with operators
+            >>> order = repo.retrieve_record_by_filter([
+            ...     ("user_id", FilterOperator.EQ, user_id),
+            ...     ("total", FilterOperator.GTE, 100),
+            ...     ("status", FilterOperator.IN, ["pending", "processing"]),
+            ... ], order_by="created_at", order_desc=True)
+            >>>
+            >>> # OR conditions
+            >>> record = repo.retrieve_record_by_filter([
+            ...     ("email", FilterOperator.EQ, email),
+            ...     ("phone", FilterOperator.EQ, phone),
+            ... ], use_or=True)
+        """
+        start_time = datetime.now()
+        
+        query = self.session.query(self.model)
+        
+        # Apply soft-delete filter unless explicitly including deleted
+        if not include_deleted and hasattr(self.model, 'is_deleted'):
+            query = query.filter(self.model.is_deleted == False)
+        
+        # Apply custom filters
+        if filters:
+            conditions = self._build_query_filters(filters, use_or)
+            if conditions:
+                if use_or:
+                    query = query.filter(or_(*conditions))
+                else:
+                    query = query.filter(and_(*conditions))
+        
+        # Apply ordering
+        if order_by:
+            if isinstance(order_by, str):
+                order_by = [order_by]
+            for field in order_by:
+                column = getattr(self.model, field)
+                query = query.order_by(column.desc() if order_desc else column.asc())
+        
+        record = query.first()
+        
+        end_time = datetime.now()
+        execution_time = end_time - start_time
+        self.logger.debug(
+            f"retrieve_record_by_filter executed in {execution_time}",
+            filters=str(filters),
+            found=record is not None,
+        )
+        
+        return record
+
+    def retrieve_records_by_filter(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]] = None,
+        use_or: bool = False,
+        order_by: Union[str, List[str]] = None,
+        order_desc: bool = False,
+        limit: int = None,
+        offset: int = None,
+        include_deleted: bool = False,
+    ) -> List[DeclarativeMeta]:
+        """
+        Retrieve multiple records matching the filter criteria.
+        
+        Similar to retrieve_record_by_filter but returns all matching
+        records with optional pagination support.
+        
+        Args:
+            filters: Filter criteria (dict or list of tuples).
+            use_or: If True, combine filters with OR. Default is AND.
+            order_by: Field(s) to order results by.
+            order_desc: If True, order descending. Default ascending.
+            limit: Maximum number of records to return.
+            offset: Number of records to skip (for pagination).
+            include_deleted: If True, include soft-deleted records.
+            
+        Returns:
+            List of matching records (empty list if none found).
+            
+        Example:
+            >>> # Get all active products in a category
+            >>> products = repo.retrieve_records_by_filter(
+            ...     filters={"category": "electronics", "is_active": True},
+            ...     order_by="price",
+            ...     limit=20,
+            ...     offset=0
+            ... )
+            >>>
+            >>> # Complex query with multiple operators
+            >>> orders = repo.retrieve_records_by_filter(
+            ...     filters=[
+            ...         ("created_at", FilterOperator.GTE, start_date),
+            ...         ("created_at", FilterOperator.LTE, end_date),
+            ...         ("status", FilterOperator.NOT_IN, ["cancelled", "refunded"]),
+            ...     ],
+            ...     order_by="created_at",
+            ...     order_desc=True,
+            ...     limit=100
+            ... )
+        """
+        start_time = datetime.now()
+        
+        query = self.session.query(self.model)
+        
+        # Apply soft-delete filter unless explicitly including deleted
+        if not include_deleted and hasattr(self.model, 'is_deleted'):
+            query = query.filter(self.model.is_deleted == False)
+        
+        # Apply custom filters
+        if filters:
+            conditions = self._build_query_filters(filters, use_or)
+            if conditions:
+                if use_or:
+                    query = query.filter(or_(*conditions))
+                else:
+                    query = query.filter(and_(*conditions))
+        
+        # Apply ordering
+        if order_by:
+            if isinstance(order_by, str):
+                order_by = [order_by]
+            for field in order_by:
+                column = getattr(self.model, field)
+                query = query.order_by(column.desc() if order_desc else column.asc())
+        
+        # Apply pagination
+        if offset is not None:
+            query = query.offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
+        
+        records = query.all()
+        
+        end_time = datetime.now()
+        execution_time = end_time - start_time
+        self.logger.debug(
+            f"retrieve_records_by_filter executed in {execution_time}",
+            filters=str(filters),
+            count=len(records),
+        )
+        
+        return records
+
+    def count_by_filter(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]] = None,
+        use_or: bool = False,
+        include_deleted: bool = False,
+    ) -> int:
+        """
+        Count records matching the filter criteria.
+        
+        Args:
+            filters: Filter criteria (dict or list of tuples).
+            use_or: If True, combine filters with OR. Default is AND.
+            include_deleted: If True, include soft-deleted records.
+            
+        Returns:
+            Number of matching records.
+            
+        Example:
+            >>> active_count = repo.count_by_filter({"is_active": True})
+            >>> recent_orders = repo.count_by_filter([
+            ...     ("created_at", FilterOperator.GTE, last_week),
+            ... ])
+        """
+        start_time = datetime.now()
+        
+        query = self.session.query(self.model)
+        
+        if not include_deleted and hasattr(self.model, 'is_deleted'):
+            query = query.filter(self.model.is_deleted == False)
+        
+        if filters:
+            conditions = self._build_query_filters(filters, use_or)
+            if conditions:
+                if use_or:
+                    query = query.filter(or_(*conditions))
+                else:
+                    query = query.filter(and_(*conditions))
+        
+        count = query.count()
+        
+        end_time = datetime.now()
+        execution_time = end_time - start_time
+        self.logger.debug(
+            f"count_by_filter executed in {execution_time}",
+            filters=str(filters),
+            count=count,
+        )
+        
+        return count
+
+    def exists_by_filter(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]] = None,
+        use_or: bool = False,
+        include_deleted: bool = False,
+    ) -> bool:
+        """
+        Check if any record exists matching the filter criteria.
+        
+        More efficient than count_by_filter when you just need to
+        know if a record exists.
+        
+        Args:
+            filters: Filter criteria (dict or list of tuples).
+            use_or: If True, combine filters with OR. Default is AND.
+            include_deleted: If True, include soft-deleted records.
+            
+        Returns:
+            True if at least one record matches, False otherwise.
+            
+        Example:
+            >>> if repo.exists_by_filter({"email": email}):
+            ...     raise ValueError("Email already registered")
+        """
+        record = self.retrieve_record_by_filter(
+            filters=filters,
+            use_or=use_or,
+            include_deleted=include_deleted,
+        )
+        return record is not None
+
     def create_record(
         self,
         record: DeclarativeMeta,
@@ -197,7 +594,7 @@ class IRepository(ABC):
 
         end_time = datetime.now()
         execution_time = end_time - start_time
-        self.logger.info(f"Execution time: {execution_time} seconds")
+        self.logger.info(f"create_record executed in {execution_time}")
 
         return record
 
@@ -211,7 +608,7 @@ class IRepository(ABC):
         Retrieve a record by its primary key ID.
 
         Results are cached using LRU cache for improved performance
-        on repeated queries.
+        on repeated queries. Uses retrieve_record_by_filter internally.
 
         Args:
             id (str): The primary key ID of the record.
@@ -226,17 +623,10 @@ class IRepository(ABC):
             >>> if user:
             ...     print(user.email)
         """
-        start_time = datetime.now()
-        record = (
-            self.session.query(self.model)
-            .filter(self.model.id == id, self.model.is_deleted == is_deleted)
-            .first()
+        return self.retrieve_record_by_filter(
+            filters={"id": id},
+            include_deleted=is_deleted,
         )
-        end_time = datetime.now()
-        execution_time = end_time - start_time
-        self.logger.info(f"Execution time: {execution_time} seconds")
-
-        return record if record else None
 
     @cachedmethod(attrgetter('_cache'))
     def retrieve_record_by_urn(
@@ -248,7 +638,7 @@ class IRepository(ABC):
         Retrieve a record by its Unique Resource Name (URN).
 
         Results are cached using LRU cache for improved performance
-        on repeated queries.
+        on repeated queries. Uses retrieve_record_by_filter internally.
 
         Args:
             urn (str): The unique resource name of the record.
@@ -263,17 +653,10 @@ class IRepository(ABC):
             >>> if user:
             ...     print(user.name)
         """
-        start_time = datetime.now()
-        record = (
-            self.session.query(self.model)
-            .filter(self.model.urn == urn, self.model.is_deleted == is_deleted)
-            .first()
+        return self.retrieve_record_by_filter(
+            filters={"urn": urn},
+            include_deleted=is_deleted,
         )
-        end_time = datetime.now()
-        execution_time = end_time - start_time
-        self.logger.info(f"Execution time: {execution_time} seconds")
-
-        return record if record else None
 
     def update_record(
         self,
@@ -304,10 +687,9 @@ class IRepository(ABC):
             ... )
         """
         start_time = datetime.now()
-        record = (
-            self.session.query(self.model)
-            .filter(self.model.id == id)
-            .first()
+        record = self.retrieve_record_by_filter(
+            filters={"id": id},
+            include_deleted=True,  # Allow updating soft-deleted records
         )
 
         if not record:
@@ -319,6 +701,115 @@ class IRepository(ABC):
         self.session.commit()
         end_time = datetime.now()
         execution_time = end_time - start_time
-        self.logger.info(f"Execution time: {execution_time} seconds")
+        self.logger.info(f"update_record executed in {execution_time}")
 
         return record
+
+    def update_record_by_filter(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]],
+        new_data: Dict[str, Any],
+        use_or: bool = False,
+    ) -> Optional[DeclarativeMeta]:
+        """
+        Update a record matching the filter criteria.
+        
+        Finds the first record matching the filters and updates it.
+        
+        Args:
+            filters: Filter criteria to find the record.
+            new_data: Dictionary of attribute names to new values.
+            use_or: If True, combine filters with OR.
+            
+        Returns:
+            The updated record, or None if not found.
+            
+        Example:
+            >>> repo.update_record_by_filter(
+            ...     filters={"email": "old@example.com"},
+            ...     new_data={"email": "new@example.com", "updated_at": datetime.now()}
+            ... )
+        """
+        start_time = datetime.now()
+        record = self.retrieve_record_by_filter(
+            filters=filters,
+            use_or=use_or,
+            include_deleted=True,
+        )
+
+        if not record:
+            return None
+
+        for attr, value in new_data.items():
+            setattr(record, attr, value)
+
+        self.session.commit()
+        end_time = datetime.now()
+        execution_time = end_time - start_time
+        self.logger.info(f"update_record_by_filter executed in {execution_time}")
+
+        return record
+
+    def delete_record_by_filter(
+        self,
+        filters: Union[Dict[str, Any], List[tuple]],
+        use_or: bool = False,
+        hard_delete: bool = False,
+        deleted_by: Any = None,
+    ) -> bool:
+        """
+        Delete a record matching the filter criteria.
+        
+        By default performs a soft delete (sets is_deleted=True).
+        Use hard_delete=True for permanent deletion.
+        
+        Args:
+            filters: Filter criteria to find the record.
+            use_or: If True, combine filters with OR.
+            hard_delete: If True, permanently delete the record.
+            deleted_by: User ID performing the deletion (for audit).
+            
+        Returns:
+            True if a record was deleted, False if not found.
+            
+        Example:
+            >>> # Soft delete
+            >>> repo.delete_record_by_filter(
+            ...     filters={"id": record_id},
+            ...     deleted_by=current_user.id
+            ... )
+            >>>
+            >>> # Hard delete
+            >>> repo.delete_record_by_filter(
+            ...     filters={"status": "expired"},
+            ...     hard_delete=True
+            ... )
+        """
+        start_time = datetime.now()
+        record = self.retrieve_record_by_filter(
+            filters=filters,
+            use_or=use_or,
+            include_deleted=False,
+        )
+
+        if not record:
+            return False
+
+        if hard_delete:
+            self.session.delete(record)
+        else:
+            record.is_deleted = True
+            if deleted_by is not None and hasattr(record, 'updated_by'):
+                record.updated_by = deleted_by
+            if hasattr(record, 'updated_on'):
+                record.updated_on = datetime.now()
+
+        self.session.commit()
+        end_time = datetime.now()
+        execution_time = end_time - start_time
+        self.logger.info(
+            f"delete_record_by_filter executed in {execution_time}",
+            hard_delete=hard_delete,
+        )
+
+        return True
