@@ -4,7 +4,6 @@ Tests for middleware classes.
 Tests both local middlewares and FastMiddleware package components.
 """
 
-from http import HTTPMethod
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -431,7 +430,7 @@ class TestAuthenticationMiddleware:
         request.state = MagicMock()
         request.state.urn = "test-urn"
         request.url.path = "/api/protected"
-        request.method = HTTPMethod.OPTIONS
+        request.method = "OPTIONS"
 
         expected_response = MagicMock()
 

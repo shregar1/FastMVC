@@ -5,7 +5,7 @@ Validates JWT tokens and enforces authentication on protected routes.
 Compatible with FastMiddleware's RequestContextMiddleware.
 """
 
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
@@ -81,7 +81,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         urn: str = _get_request_urn(request)
         endpoint: str = request.url.path
 
-        if request.method == HTTPMethod.OPTIONS:
+        if request.method == "OPTIONS":
             return await call_next(request)
 
         logger.debug(f"Received request for endpoint: {endpoint}")

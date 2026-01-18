@@ -15,8 +15,6 @@ Usage:
     >>> app.include_router(router)
 """
 
-from http import HTTPMethod
-
 from fastapi import APIRouter
 
 from constants.api_lk import APILK
@@ -33,7 +31,7 @@ logger.debug(f"Registering {UserLoginController.__name__} route.")
 router.add_api_route(
     path="/login",
     endpoint=UserLoginController().post,
-    methods=[HTTPMethod.POST.value],
+    methods=["POST"],
     name=APILK.LOGIN,
 )
 logger.debug(f"Registered {UserLoginController.__name__} route.")
@@ -43,7 +41,7 @@ logger.debug(f"Registering {UserRegistrationController.__name__} route.")
 router.add_api_route(
     path="/register",
     endpoint=UserRegistrationController().post,
-    methods=[HTTPMethod.POST.value],
+    methods=["POST"],
     name=APILK.REGISTRATION,
 )
 logger.debug(f"Registered {UserRegistrationController.__name__} route.")
@@ -53,7 +51,7 @@ logger.debug(f"Registering {UserLogoutController.__name__} route.")
 router.add_api_route(
     path="/logout",
     endpoint=UserLogoutController().post,
-    methods=[HTTPMethod.POST.value],
+    methods=["POST"],
     name=APILK.LOGOUT,
 )
 logger.debug(f"Registered {UserLogoutController.__name__} route.")

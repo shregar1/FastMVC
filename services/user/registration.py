@@ -3,7 +3,7 @@ from datetime import datetime
 from http import HTTPStatus
 
 import bcrypt
-import ulid
+from ulid import ULID
 
 from constants.api_status import APIStatus
 from dtos.requests.user.registration import UserRegistrationRequestDTO
@@ -95,7 +95,7 @@ class UserRegistrationService(IUserService):
 
         self.logger.debug("Preparing user data")
         user: User = User(
-            urn=str(ulid.new()),
+            urn=str(ULID()),
             email=request_dto.email,
             password=bcrypt.hashpw(
                 request_dto.password.encode("utf-8"),

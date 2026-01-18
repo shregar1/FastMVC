@@ -219,11 +219,11 @@ class TestUserRegistrationService:
 
     @pytest.mark.asyncio
     @patch('services.user.registration.bcrypt')
-    @patch('services.user.registration.ulid')
+    @patch('services.user.registration.ULID')
     @patch.dict('os.environ', {'BCRYPT_SALT': '$2b$12$LQv3c1yqBWVHxkd0LHAkCO'})
-    async def test_run_success(self, mock_ulid, mock_bcrypt, service, mock_user_repository):
+    async def test_run_success(self, mock_ulid_class, mock_bcrypt, service, mock_user_repository):
         """Test successful registration."""
-        mock_ulid.ulid.return_value = "01ARZ3NDEKTSV4RRFFQ69G5FAV"
+        mock_ulid_class.return_value = MagicMock(__str__=lambda x: "01ARZ3NDEKTSV4RRFFQ69G5FAV")
         mock_bcrypt.hashpw.return_value = b"hashed_password"
         mock_user_repository.retrieve_record_by_email.return_value = None
 
