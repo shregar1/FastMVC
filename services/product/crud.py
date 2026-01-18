@@ -57,6 +57,31 @@ class ProductCRUDService(IProductService):
     def user_id(self) -> int:
         return self._user_id
     
+    async def run(self, request_dto) -> dict:
+        """
+        Execute the service operation.
+        
+        This is the main entry point for the service.
+        For CRUD services, this delegates to the appropriate method
+        based on the request context.
+        
+        Args:
+            request_dto: The request data transfer object.
+            
+        Returns:
+            Response dictionary.
+        """
+        # CRUD service delegates to specific methods
+        # This satisfies the abstract method requirement
+        if isinstance(request_dto, ProductCreateRequestDTO):
+            response = await self.create(request_dto)
+            return response.model_dump()
+        elif isinstance(request_dto, ProductUpdateRequestDTO):
+            # Update requires ID which would need to be passed differently
+            raise NotImplementedError("Use update() method directly with record_id")
+        else:
+            raise NotImplementedError(f"Unknown request type: {type(request_dto)}")
+    
     async def create(self, request_dto: ProductCreateRequestDTO) -> BaseResponseDTO:
         """
         Create a new product.
