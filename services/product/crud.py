@@ -8,7 +8,7 @@ from datetime import datetime
 from http import HTTPStatus
 from typing import List, Optional
 
-from ulid import new as ulid_new
+from ulid import ULID
 
 from constants.api_status import APIStatus
 from dtos.requests.product.create import ProductCreateRequestDTO
@@ -70,7 +70,7 @@ class ProductCRUDService(IProductService):
         self.logger.debug(f"Creating product: {request_dto.name}")
         
         record = Product(
-            urn=ulid_new().str,
+            urn=str(ULID()),
             name=request_dto.name,
             description=request_dto.description,
             is_active=True,

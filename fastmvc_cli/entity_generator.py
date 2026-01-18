@@ -521,7 +521,7 @@ from datetime import datetime
 from http import HTTPStatus
 from typing import List, Optional
 
-from ulid import new as ulid_new
+from ulid import ULID
 
 from constants.api_status import APIStatus
 from dtos.requests.{self.entity_snake}.create import {self.entity_name}CreateRequestDTO
@@ -583,7 +583,7 @@ class {self.entity_name}CRUDService(I{self.entity_name}Service):
         self.logger.debug(f"Creating {self.entity_lower}: {{request_dto.name}}")
         
         record = {self.entity_name}(
-            urn=ulid_new().str,
+            urn=str(ULID()),
             name=request_dto.name,
             description=request_dto.description,
             is_active=True,

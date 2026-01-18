@@ -5,7 +5,7 @@ This package provides CLI tools to generate new FastAPI projects
 based on the FastMVC architecture pattern.
 
 Usage:
-    $ pip install fastmvc
+    $ pip install fast-mvc
     $ fastmvc generate <project_name>
 
 Example:
@@ -15,6 +15,7 @@ Example:
     $ python -m uvicorn app:app --reload
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "FastMVC Team"
+__package_name__ = "pyfastmvc"
 

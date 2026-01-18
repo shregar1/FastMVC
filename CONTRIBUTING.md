@@ -36,7 +36,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 3. Add the upstream remote:
    ```bash
-   git remote add upstream https://github.com/fastmvc/fastmvc.git
+   git remote add upstream https://github.com/fast-mvc/fastmvc.git
    ```
 
 ## Development Setup

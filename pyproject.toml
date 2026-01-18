@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fastmvc"
-version = "1.0.0"
+name = "pyfastmvc"
+version = "1.0.1"
 description = "Production-grade MVC Framework for FastAPI - Generate projects, entities, and migrations with a single command"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "FastMVC Team", email = "team@fastmvc.dev"}
+    {name = "FastMVC Team", email = "team@fastapi-mvc.dev"}
 ]
 maintainers = [
-    {name = "FastMVC Team", email = "team@fastmvc.dev"}
+    {name = "FastMVC Team", email = "team@fastapi-mvc.dev"}
 ]
 keywords = [
     "fastapi",
@@ -99,15 +99,15 @@ docs = [
     "mkdocstrings[python]>=0.24.0",
 ]
 all = [
-    "fastmvc[dev,docs]",
+    "pyfastmvc[dev,docs]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/fastmvc/fastmvc"
-Documentation = "https://fastmvc.dev/docs"
-Repository = "https://github.com/fastmvc/fastmvc"
-Issues = "https://github.com/fastmvc/fastmvc/issues"
-Changelog = "https://github.com/fastmvc/fastmvc/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/fastapi-mvc-framework/fastapi-mvc-framework"
+Documentation = "https://fastapi-mvc.dev/docs"
+Repository = "https://github.com/fastapi-mvc-framework/fastapi-mvc-framework"
+Issues = "https://github.com/fastapi-mvc-framework/fastapi-mvc-framework/issues"
+Changelog = "https://github.com/fastapi-mvc-framework/fastapi-mvc-framework/blob/main/CHANGELOG.md"
 
 [project.scripts]
 fastmvc = "fastmvc_cli.cli:main"

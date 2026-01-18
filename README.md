@@ -22,7 +22,7 @@ A production-grade FastAPI framework implementing the Model-View-Controller (MVC
 ### Installation
 
 ```bash
-pip install fastmvc
+pip install pyfastmvc
 ```
 
 ### Create a New Project
